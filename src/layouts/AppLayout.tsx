@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Outlet, NavLink, useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
+import { GlobalSearch } from "@/components/search/GlobalSearch"
 import {
     FolderKanban,
     LayoutDashboard,
@@ -38,14 +39,17 @@ export default function AppLayout() {
     return (
         <div className="min-h-screen bg-background flex flex-col md:flex-row">
             {/* Mobile Header */}
-            <header className="md:hidden flex items-center justify-between p-4 border-b bg-card">
+            <header className="md:hidden flex items-center justify-between p-4 border-b bg-card sticky top-0 z-50">
                 <div className="flex items-center space-x-2">
+                    <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                        {isSidebarOpen ? <X /> : <Menu />}
+                    </Button>
                     <Mountain className="h-6 w-6 text-primary" />
                     <span className="font-bold">SkiCRM</span>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-                    {isSidebarOpen ? <X /> : <Menu />}
-                </Button>
+                <div className="w-full max-w-[150px] ml-2">
+                    <GlobalSearch />
+                </div>
             </header>
 
             {/* Sidebar Overlay for Mobile */}
@@ -65,6 +69,10 @@ export default function AppLayout() {
                     <div className="flex items-center space-x-2 mb-8 md:flex">
                         <Mountain className="h-8 w-8 text-primary" />
                         <span className="text-xl font-bold tracking-tight">SkiCRM</span>
+                    </div>
+
+                    <div className="mb-6 hidden md:block">
+                        <GlobalSearch />
                     </div>
 
                     <nav className="space-y-2">
@@ -111,7 +119,7 @@ export default function AppLayout() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-8">
+            <main className="flex-1 overflow-y-auto p-4 md:p-8 pt-4">
                 <Outlet />
             </main>
         </div>

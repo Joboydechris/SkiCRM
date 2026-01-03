@@ -12,9 +12,12 @@ export async function getDeals() {
 }
 
 export async function createDeal(deal: Partial<Deal>) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("User not authenticated")
+
     const { data, error } = await supabase
         .from("deals")
-        .insert([deal])
+        .insert([{ ...deal, user_id: user.id }])
         .select()
         .single()
 

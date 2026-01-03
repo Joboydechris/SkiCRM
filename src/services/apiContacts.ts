@@ -24,9 +24,12 @@ export async function getContacts() {
 }
 
 export async function createContact(contact: Partial<Contact>) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("User not authenticated")
+
     const { data, error } = await supabase
         .from("contacts")
-        .insert([contact])
+        .insert([{ ...contact, user_id: user.id }])
         .select()
         .single()
 

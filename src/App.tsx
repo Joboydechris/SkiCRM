@@ -11,6 +11,7 @@ import ContactDetail from "@/pages/contacts/ContactDetail"
 import Contacts from "@/pages/contacts/Contacts"
 import Deals from "@/pages/deals/Deals"
 import Tasks from "@/pages/tasks/Tasks"
+import { Toaster } from "sonner"
 
 import Dashboard from "@/pages/dashboard/Dashboard"
 
@@ -46,6 +47,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
+        <Toaster />
       </AuthProvider>
     </ThemeProvider>
   )

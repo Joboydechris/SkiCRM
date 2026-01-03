@@ -25,6 +25,10 @@ CREATE POLICY "Users can update their own profile"
     ON public.users FOR UPDATE 
     USING (auth.uid() = id);
 
+CREATE POLICY "Users can insert their own profile" 
+    ON public.users FOR INSERT 
+    WITH CHECK (auth.uid() = id);
+
 -- CONTACTS TABLE
 CREATE TABLE public.contacts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

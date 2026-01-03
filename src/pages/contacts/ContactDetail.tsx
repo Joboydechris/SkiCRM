@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ArrowLeft, Loader2, Save, Trash } from "lucide-react"
+import { ArrowLeft, Loader2, Save, Trash, Target, CheckSquare } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { useEffect } from "react"
+import { AddDealDialog } from "@/pages/deals/components/AddDealDialog"
+import { AddTaskDialog } from "@/pages/tasks/components/AddTaskDialog"
 
 export default function ContactDetail() {
     const { id } = useParams<{ id: string }>()
@@ -152,15 +154,31 @@ export default function ContactDetail() {
                 </div>
 
                 <div>
-                    {/* Sidebar for deals/tasks or activity - Placeholder for now */}
-                    <Card>
+                    <Card className="mb-6">
                         <CardHeader>
-                            <CardTitle>Activity</CardTitle>
+                            <CardTitle>Quick Actions</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground text-sm">No recent activity.</p>
+                        <CardContent className="space-y-4">
+                            <AddDealDialog
+                                defaultContactId={contact.id}
+                                trigger={
+                                    <Button variant="outline" className="w-full justify-start">
+                                        <Target className="mr-2 h-4 w-4" /> Add Deal
+                                    </Button>
+                                }
+                            />
+                            <AddTaskDialog
+                                defaultContactId={contact.id}
+                                trigger={
+                                    <Button variant="outline" className="w-full justify-start">
+                                        <CheckSquare className="mr-2 h-4 w-4" /> Add Task
+                                    </Button>
+                                }
+                            />
                         </CardContent>
                     </Card>
+
+                    {/* Future Activity Feed could go here */}
                 </div>
             </div>
         </div>

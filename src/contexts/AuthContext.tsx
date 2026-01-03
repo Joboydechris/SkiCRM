@@ -21,6 +21,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(session)
             setUser(session?.user ?? null)
             setLoading(false)
+            if (session?.user) {
+                ensureUserExists(session.user)
+            }
         })
 
         const {
@@ -29,7 +32,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(session)
             setUser(session?.user ?? null)
             setLoading(false)
+            if (session?.user) {
+                ensureUserExists(session.user)
+            }
         })
+
+        async function ensureUserExists(user: User) {
+            try {
+                // Check if user exists in public.users
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('id', user.id)
+                    .single()
+
+                if (!data && (error?.code === 'PGRST116' || !error)) {
+                    // User missing, insert them
+                    await supabase.from('users').insert([{
+                        id: user.id,
+                        email: user.email,
+                        name: user.user_metadata?.full_name || user.email?.split('@')[0]
+                    }])
+                }
+            } catch (err) {
+                console.error("Failed to ensure user profile exists:", err)
+            }
+        }
 
         return () => subscription.unsubscribe()
     }, [])

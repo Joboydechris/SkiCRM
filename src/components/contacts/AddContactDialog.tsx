@@ -18,6 +18,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Loader2, Plus } from "lucide-react"
+import { toast } from "sonner"
 
 const contactSchema = z.object({
     name: z.string().min(2, "Name is required"),
@@ -42,7 +43,14 @@ export function AddContactDialog() {
             queryClient.invalidateQueries({ queryKey: ["contacts"] })
             setOpen(false)
             reset()
+            toast.success("Contact created successfully")
         },
+        onError: (error) => {
+            console.error("Failed to create contact:", error)
+            toast.error("Failed to create contact", {
+                description: error.message
+            })
+        }
     })
 
     const onSubmit = (data: any) => {
