@@ -73,13 +73,13 @@ export default function AppLayout() {
 
             {/* Sidebar */}
             <aside className={cn(
-                "fixed inset-y-0 left-0 z-50 bg-background border-r border-border shadow-sm transform transition-all duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between py-4",
+                "fixed inset-y-0 left-0 z-50 bg-background border-r border-border shadow-sm transform transition-all duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between py-3",
                 isSidebarOpen ? "translate-x-0" : "-translate-x-full",
                 isCollapsed ? "w-20 px-2" : "w-64 px-4"
             )}>
                 <div className="flex flex-col h-full relative">
                     {/* Sidebar Header & Toggle */}
-                    <div className={cn("flex items-center mb-6 transition-all duration-300", isCollapsed ? "justify-center" : "justify-between pl-2")}>
+                    <div className={cn("flex items-center mb-4 transition-all duration-300", isCollapsed ? "justify-center" : "justify-between pl-2")}>
                         {!isCollapsed && <span className="text-xl font-bold tracking-tight truncate">SkiCRM</span>}
                         <Button
                             variant="ghost"
@@ -92,14 +92,14 @@ export default function AppLayout() {
                     </div>
 
                     {/* Navigation */}
-                    <nav className="space-y-2 flex-1">
+                    <nav className="space-y-1 flex-1">
                         {navItems.map((item) => (
                             <NavLink
                                 key={item.to}
                                 to={item.to}
                                 onClick={() => setIsSidebarOpen(false)}
                                 className={({ isActive }) => cn(
-                                    "flex items-center px-3 py-2.5 rounded-full text-sm font-medium transition-all duration-200 group relative",
+                                    "flex items-center px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 group relative",
                                     isActive
                                         ? "bg-black text-white shadow-md dark:bg-white dark:text-black"
                                         : "text-muted-foreground hover:bg-gray-100 hover:text-foreground dark:hover:bg-gray-800",
@@ -118,7 +118,7 @@ export default function AppLayout() {
                     </nav>
 
                     {/* Upgrade Banner (Hidden when collapsed) */}
-                    <div className={cn("mt-4 mx-auto w-full transition-all duration-300 overflow-hidden", isCollapsed ? "h-0 opacity-0" : "h-auto opacity-100")}>
+                    <div className={cn("mt-2 mx-auto w-full transition-all duration-300 overflow-hidden", isCollapsed ? "h-0 opacity-0" : "h-auto opacity-100")}>
                         <div className="bg-gray-900 text-white rounded-2xl p-4 relative overflow-hidden shadow-lg dark:bg-gray-800">
                             <div className="absolute top-0 right-0 -mr-4 -mt-4 h-16 w-16 rounded-full bg-white/10 blur-xl"></div>
                             <h3 className="text-sm font-bold mb-0.5">Upgrade to Pro</h3>
@@ -130,7 +130,7 @@ export default function AppLayout() {
                     </div>
 
                     {/* User Profile & Logout */}
-                    <div className="mt-4 pl-1 space-y-1">
+                    <div className="mt-2 pl-1 space-y-1">
                         <div className={cn(
                             "flex items-center rounded-lg text-sm font-medium transition-all duration-300 group hover:bg-gray-100 dark:hover:bg-gray-800 mb-1",
                             isCollapsed ? "justify-center w-full py-2" : "px-3 py-2 space-x-3 w-full"
@@ -176,8 +176,8 @@ export default function AppLayout() {
                         {/* Top Bar Area */}
                         <div className="hidden md:flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold opacity-0">Dashboard</h2> {/* spacer */}
-                            <div className="flex items-center space-x-3">
-                                <div className="z-20 w-[240px] max-w-[50vw]">
+                            <div className="flex items-center space-x-4">
+                                <div className="z-20 w-auto">
                                     <GlobalSearch collapsed={false} />
                                 </div>
                                 <Button

@@ -46,7 +46,7 @@ export function GlobalSearch({ collapsed = false }: { collapsed?: boolean }) {
                 onClick={() => setOpen(true)}
                 className={cn(
                     "inline-flex items-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 relative w-full justify-start text-sm text-muted-foreground",
-                    collapsed ? "w-9 px-0 justify-center" : "w-full md:w-64"
+                    collapsed ? "w-9 px-0 justify-center" : "w-full md:w-56 lg:w-64"
                 )}
             >
                 <Search className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-2")} />
