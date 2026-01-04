@@ -60,7 +60,8 @@ export function AddDealDialog({ defaultContactId, trigger }: AddDealDialogProps)
         mutation.mutate({
             ...data,
             value: Number(data.value),
-            expected_close_date: data.expected_close_date || null
+            expected_close_date: data.expected_close_date || null,
+            contact_id: data.contact_id === "" ? null : data.contact_id
         })
     }
 
