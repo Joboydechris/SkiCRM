@@ -115,15 +115,15 @@ export default function Dashboard() {
                 </Card>
 
                 {/* Side Widgets (1/3 width) - Stacked vertically */}
-                <div className="space-y-3 flex flex-col">
+                <div className="space-y-3 flex flex-col h-full">
                     {/* Calendar Widget Compact */}
-                    <Link to="/tasks" className="block">
-                        <Card className="rounded-2xl border-none shadow-sm p-3 hover:shadow-md transition-all cursor-pointer group">
+                    <Link to="/tasks" className="block h-full">
+                        <Card className="rounded-2xl border-none shadow-sm p-3 hover:shadow-md transition-all cursor-pointer group h-full flex flex-col justify-between">
                             <div className="flex items-center justify-between mb-2">
                                 <h3 className="font-bold text-xs">Sep 2024</h3>
                                 <ArrowUpRight className="h-3 w-3 text-gray-400 group-hover:text-black transition-colors" />
                             </div>
-                            <div className="flex justify-between items-center text-center">
+                            <div className="flex justify-between items-center text-center flex-1">
                                 {[17, 18, 19, 20, 21].map((date, i) => (
                                     <div key={date} className={`flex flex-col items-center p-1 rounded-lg ${i === 2 ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500'}`}>
                                         <span className="text-[9px] mb-0.5">{['T', 'W', 'T', 'F', 'S'][i]}</span>
@@ -133,24 +133,6 @@ export default function Dashboard() {
                             </div>
                         </Card>
                     </Link>
-
-                    {/* Growth Widget Compact */}
-                    <Card className="rounded-2xl border-none shadow-sm p-3 flex items-center justify-between flex-1">
-                        <div>
-                            <h4 className="font-bold text-xs">Growth</h4>
-                            <p className="text-[10px] text-green-600 flex items-center mt-0.5">
-                                <TrendingUp className="h-3 w-3 mr-1" />
-                                0.9%
-                            </p>
-                        </div>
-                        <div className="relative h-10 w-10 flex items-center justify-center">
-                            <svg className="h-full w-full -rotate-90 text-gray-200" viewBox="0 0 36 36">
-                                <path className="fill-none stroke-current stroke-[3]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path className="fill-none stroke-gray-900 stroke-[3] dark:stroke-white" strokeDasharray="65, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            </svg>
-                            <span className="absolute text-[9px] font-bold">65%</span>
-                        </div>
-                    </Card>
                 </div>
             </div>
 
@@ -177,8 +159,8 @@ export default function Dashboard() {
                             <span className="font-semibold text-xs">${deal.value?.toLocaleString()}</span>
                             <div className="text-right">
                                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${deal.stage === 'Closed' ? 'bg-green-100 text-green-800' :
-                                        deal.stage === 'Proposal' ? 'bg-blue-100 text-blue-800' :
-                                            'bg-gray-100 text-gray-800'
+                                    deal.stage === 'Proposal' ? 'bg-blue-100 text-blue-800' :
+                                        'bg-gray-100 text-gray-800'
                                     }`}>
                                     {deal.stage}
                                 </span>

@@ -129,8 +129,25 @@ export default function AppLayout() {
                         </div>
                     </div>
 
-                    {/* Logout */}
-                    <div className="mt-4 pl-1">
+                    {/* User Profile & Logout */}
+                    <div className="mt-4 pl-1 space-y-1">
+                        <div className={cn(
+                            "flex items-center rounded-lg text-sm font-medium transition-all duration-300 group hover:bg-gray-100 dark:hover:bg-gray-800 mb-1",
+                            isCollapsed ? "justify-center w-full py-2" : "px-3 py-2 space-x-3 w-full"
+                        )}>
+
+                            <div className="h-8 w-8 rounded-full bg-muted border-2 border-background shadow-sm overflow-hidden flex flex-shrink-0 items-center justify-center text-xs font-bold text-muted-foreground">
+                                {user?.email?.charAt(0).toUpperCase()}
+                            </div>
+
+                            {!isCollapsed && (
+                                <div className="flex flex-col text-left overflow-hidden">
+                                    <span className="truncate text-xs font-semibold text-foreground">{user?.user_metadata?.full_name || "User"}</span>
+                                    <span className="truncate text-[10px] text-muted-foreground">{user?.email}</span>
+                                </div>
+                            )}
+                        </div>
+
                         <button
                             onClick={handleSignOut}
                             className={cn(
@@ -160,7 +177,7 @@ export default function AppLayout() {
                         <div className="hidden md:flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold opacity-0">Dashboard</h2> {/* spacer */}
                             <div className="flex items-center space-x-3">
-                                <div className="z-20 w-[240px]">
+                                <div className="z-20 w-[240px] max-w-[50vw]">
                                     <GlobalSearch collapsed={false} />
                                 </div>
                                 <Button
@@ -184,9 +201,6 @@ export default function AppLayout() {
                                     {theme === "system" && <Laptop className="h-4 w-4" />}
                                     <span className="sr-only">Toggle theme</span>
                                 </Button>
-                                <div className="h-9 w-9 rounded-full bg-muted border-2 border-background shadow-sm overflow-hidden flex items-center justify-center text-xs font-bold text-muted-foreground">
-                                    {user?.email?.charAt(0).toUpperCase()}
-                                </div>
                             </div>
                         </div>
 
