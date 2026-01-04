@@ -31,6 +31,8 @@ export interface Deal {
     stage: string
     status: string
     expected_close_date?: string
+    created_at?: string
+    updated_at?: string
 }
 
 export interface Task {

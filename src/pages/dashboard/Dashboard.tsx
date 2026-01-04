@@ -18,8 +18,49 @@ export default function Dashboard() {
 
     const totalContacts = contacts?.length || 0
     const activeDeals = deals?.filter(d => d.stage !== 'Closed').length || 0
-    const totalPipelineValue = deals?.reduce((sum, d) => sum + (d.value || 0), 0) || 0
+
+    // Total Revenue from Closed deals only
+    const totalRevenue = deals
+        ?.filter(d => d.stage === 'Closed')
+        .reduce((sum, d) => sum + (d.value || 0), 0) || 0
+
     const pendingTasks = tasks?.filter(t => !t.completed).length || 0
+
+    // Revenue Trends: Last 6 months
+    const getLast6Months = () => {
+        const months = []
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date()
+            d.setMonth(d.getMonth() - i)
+            months.push(d.toLocaleString("default", { month: "short" }))
+        }
+        return months
+    }
+
+    const monthlyRevenue = getLast6Months().map(month => {
+        const value = deals
+            ?.filter(d => d.stage === 'Closed')
+            .filter(d => {
+                const dealDate = d.expected_close_date ? new Date(d.expected_close_date) : new Date(d.created_at || "")
+                return dealDate.toLocaleString("default", { month: "short" }) === month
+            })
+            .reduce((sum, d) => sum + (d.value || 0), 0) || 0
+        return { month, value }
+    })
+
+    const maxRevenue = Math.max(...monthlyRevenue.map(m => m.value), 1)
+
+    // Calendar: Next 5 days
+    const next5Days = Array.from({ length: 5 }, (_, i) => {
+        const d = new Date()
+        d.setDate(d.getDate() + i)
+        return {
+            name: d.toLocaleString('default', { weekday: 'narrow' }), // M, T, W
+            date: d.getDate(),
+            fullDate: d.toISOString().split('T')[0],
+            hasTask: tasks?.some(t => !t.completed && t.due_date && t.due_date.startsWith(d.toISOString().split('T')[0]))
+        }
+    })
 
     return (
         <div className="space-y-4 h-full flex flex-col justify-center">
@@ -34,7 +75,7 @@ export default function Dashboard() {
                     <div className="absolute top-0 right-0 -mr-6 -mt-6 h-20 w-20 rounded-full bg-white/10 blur-xl"></div>
                     <div className="z-10">
                         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Total Revenue</p>
-                        <h3 className="text-xl font-bold mt-0.5">${totalPipelineValue.toLocaleString()}</h3>
+                        <h3 className="text-xl font-bold mt-0.5">${totalRevenue.toLocaleString()}</h3>
                     </div>
                     <div className="flex items-center text-green-400 text-[10px] mt-1 z-10">
                         <TrendingUp className="h-3 w-3 mr-1" />
@@ -101,16 +142,29 @@ export default function Dashboard() {
                             <ArrowUpRight className="h-3.5 w-3.5 text-gray-500" />
                         </div>
                     </div>
-                    {/* Simulated Bar Chart Visuals Compact */}
-                    <div className="flex-1 flex items-end justify-between space-x-2 px-2 pb-1">
-                        {[65, 40, 75, 55, 60, 85, 90, 45, 70, 60, 75, 80].slice(0, 12).map((h, i) => (
-                            <div key={i} className="group flex-1 flex flex-col items-center">
-                                <div
-                                    style={{ height: `${h}%` }}
-                                    className={`w-full max-w-[20px] rounded-t-sm transition-all duration-300 ${i === 5 ? 'bg-gray-900 shadow-md dark:bg-white' : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700'}`}
-                                ></div>
+                    {/* Real-time Bar Chart Visuals */}
+                    <div className="flex-1 flex items-end justify-between space-x-2 px-2 pb-1 relative">
+                        {monthlyRevenue.length === 0 ? (
+                            <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
+                                No closed deals yet
                             </div>
-                        ))}
+                        ) : (
+                            monthlyRevenue.map((data, i) => {
+                                const heightPercentage = maxRevenue > 0 ? (data.value / maxRevenue) * 100 : 0
+                                return (
+                                    <div key={i} className="group flex-1 flex flex-col items-center relative">
+                                        <div className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 text-[10px] bg-black text-white px-1 rounded transition-opacity whitespace-nowrap z-10">
+                                            {data.month}: ${data.value.toLocaleString()}
+                                        </div>
+                                        <div
+                                            style={{ height: `${Math.max(heightPercentage, 4)}%` }} // Min height 4% for visibility
+                                            className={`w-full max-w-[20px] rounded-t-sm transition-all duration-500 ${heightPercentage > 0 ? 'bg-gray-900 shadow-md dark:bg-white' : 'bg-gray-100 dark:bg-gray-800'}`}
+                                        ></div>
+                                        <span className="text-[9px] text-gray-400 mt-1">{data.month.slice(0, 3)}</span>
+                                    </div>
+                                )
+                            })
+                        )}
                     </div>
                 </Card>
 
@@ -120,14 +174,18 @@ export default function Dashboard() {
                     <Link to="/tasks" className="block h-full">
                         <Card className="rounded-2xl border-none shadow-sm p-3 hover:shadow-md transition-all cursor-pointer group h-full flex flex-col justify-between">
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-bold text-xs">Sep 2024</h3>
+                                <h3 className="font-bold text-xs">{new Date().toLocaleString('default', { month: 'short', year: 'numeric' })}</h3>
                                 <ArrowUpRight className="h-3 w-3 text-gray-400 group-hover:text-black transition-colors" />
                             </div>
                             <div className="flex justify-between items-center text-center flex-1">
-                                {[17, 18, 19, 20, 21].map((date, i) => (
-                                    <div key={date} className={`flex flex-col items-center p-1 rounded-lg ${i === 2 ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500'}`}>
-                                        <span className="text-[9px] mb-0.5">{['T', 'W', 'T', 'F', 'S'][i]}</span>
-                                        <span className="font-bold text-xs">{date}</span>
+                                {next5Days.map((day, i) => (
+                                    <div key={i} className={`flex flex-col items-center p-1 rounded-lg ${i === 0 ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500'} relative`}>
+                                        <span className="text-[9px] mb-0.5">{day.name}</span>
+                                        <span className="font-bold text-xs">{day.date}</span>
+                                        {/* Task Indicator Dot */}
+                                        {day.hasTask && (
+                                            <span className={`absolute -bottom-1 h-1 w-1 rounded-full ${i === 0 ? 'bg-white' : 'bg-red-500'}`}></span>
+                                        )}
                                     </div>
                                 ))}
                             </div>
