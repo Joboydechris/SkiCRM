@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
+import { useState } from "react"
 import { getContacts } from "@/services/apiContacts"
 import { getDeals } from "@/services/apiDeals"
 import { getTasks } from "@/services/apiTasks"
@@ -12,20 +13,83 @@ export default function Dashboard() {
     const { data: deals, isLoading: loadingDeals } = useQuery({ queryKey: ["deals"], queryFn: getDeals })
     const { data: tasks, isLoading: loadingTasks } = useQuery({ queryKey: ["tasks"], queryFn: getTasks })
 
+    const [timeRange, setTimeRange] = useState<'daily' | 'weekly'>('weekly')
+
     const isLoading = loadingContacts || loadingDeals || loadingTasks
 
     if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>
 
-    const totalContacts = contacts?.length || 0
-    const activeDeals = deals?.filter(d => d.stage !== 'Closed').length || 0
+    // Helper: Calculate Growth
+    const calculateGrowth = (items: any[], dateField: string = 'created_at', valueField?: string) => {
+        if (!items?.length) return 0
 
-    // Total Revenue from Closed deals only
+        const now = new Date()
+        const currentStart = new Date()
+        const previousStart = new Date()
+        const previousEnd = new Date()
+
+        if (timeRange === 'daily') {
+            currentStart.setHours(0, 0, 0, 0)
+            previousStart.setDate(currentStart.getDate() - 1)
+            previousStart.setHours(0, 0, 0, 0)
+            previousEnd.setDate(currentStart.getDate() - 1)
+            previousEnd.setHours(23, 59, 59, 999)
+        } else {
+            // Weekly: Last 7 days vs 7 days before that
+            currentStart.setDate(now.getDate() - 7)
+            previousStart.setDate(now.getDate() - 14)
+            previousEnd.setDate(now.getDate() - 7)
+        }
+
+        const currentPeriodItems = items.filter(item => {
+            const date = new Date(item[dateField])
+            return date >= currentStart && date <= now
+        })
+
+        const previousPeriodItems = items.filter(item => {
+            const date = new Date(item[dateField])
+            return date >= previousStart && date < previousEnd // < previousEnd to avoid overlap if using 'now' boundary logic strictly
+            // Simplified for logic:
+            // Daily: Today vs Yesterday
+            // Weekly: Last 7d vs Prev 7d
+        })
+
+        // Value based (Sum) or Count based
+        const currentValue = valueField
+            ? currentPeriodItems.reduce((sum, item) => sum + (Number(item[valueField]) || 0), 0)
+            : currentPeriodItems.length
+
+        const previousValue = valueField
+            ? previousPeriodItems.reduce((sum, item) => sum + (Number(item[valueField]) || 0), 0)
+            : previousPeriodItems.length
+
+        if (previousValue === 0) return currentValue > 0 ? 100 : 0
+
+        return ((currentValue - previousValue) / previousValue) * 100
+    }
+
+    // Metrics
+    const totalContacts = contacts?.length || 0
+    const contactGrowth = calculateGrowth(contacts || [], 'created_at')
+
+    const activeDeals = deals?.filter(d => d.stage !== 'Closed').length || 0
+    const dealGrowth = calculateGrowth(deals?.filter(d => d.stage !== 'Closed') || [], 'created_at')
+
     const totalRevenue = deals
         ?.filter(d => d.stage === 'Closed')
         .reduce((sum, d) => sum + (d.value || 0), 0) || 0
+    // Revenue Growth: Compare closed deals revenue in periods
+    // NOTE: 'created_at' for revenue growth might be better as 'updated_at' or 'close_date' if available, defaulting to created_at for MVP if close_date is not set. 
+    // Usually Closed Date is better. Let's use expected_close_date or updated_at if possible. 
+    // For now, using created_at as proxy or I check if I have updated_at. I added it. Let's use `updated_at` for Closed deals as proxy for "Closed At".
+    // Re-defining revenue growth below to use updated_at:
+    const revenueGrowthCalculated = calculateGrowth(deals?.filter(d => d.stage === 'Closed') || [], 'updated_at', 'value')
+
 
     const pendingTasks = tasks?.filter(t => !t.completed).length || 0
+    const taskGrowth = calculateGrowth(tasks?.filter(t => !t.completed) || [], 'created_at')
 
+    // ... (Revenue Trends Logic - Existing) ...
     // Revenue Trends: Last 6 months
     const getLast6Months = () => {
         const months = []
@@ -66,6 +130,21 @@ export default function Dashboard() {
         <div className="space-y-4 h-full flex flex-col justify-center">
             <div className="flex items-center justify-between mb-2">
                 <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
+                {/* Time Range Selector */}
+                <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 text-xs font-medium">
+                    <button
+                        onClick={() => setTimeRange('daily')}
+                        className={`px-3 py-1 rounded-md transition-all ${timeRange === 'daily' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'}`}
+                    >
+                        Daily
+                    </button>
+                    <button
+                        onClick={() => setTimeRange('weekly')}
+                        className={`px-3 py-1 rounded-md transition-all ${timeRange === 'weekly' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'}`}
+                    >
+                        Weekly
+                    </button>
+                </div>
             </div>
 
             {/* Top Grid: Revenue Card (Dark) + 3 Stats Cards - Compact Vertical */}
@@ -77,9 +156,10 @@ export default function Dashboard() {
                         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Total Revenue</p>
                         <h3 className="text-xl font-bold mt-0.5">${totalRevenue.toLocaleString()}</h3>
                     </div>
-                    <div className="flex items-center text-green-400 text-[10px] mt-1 z-10">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        <span>+4.2%</span>
+                    <div className={`flex items-center text-[10px] mt-1 z-10 ${revenueGrowthCalculated >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        <TrendingUp className={`h-3 w-3 mr-1 ${revenueGrowthCalculated < 0 ? 'rotate-180' : ''}`} />
+                        <span>{revenueGrowthCalculated >= 0 ? '+' : ''}{revenueGrowthCalculated.toFixed(1)}%</span>
+                        <span className="text-gray-500 ml-1 opacity-60">vs last {timeRange === 'daily' ? 'day' : 'week'}</span>
                     </div>
                 </div>
 
@@ -91,9 +171,9 @@ export default function Dashboard() {
                                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Active Contacts</p>
                                 <h3 className="text-xl font-bold mt-0.5">{totalContacts}</h3>
                             </div>
-                            <div className="flex items-center text-green-600 text-[10px] mt-1">
-                                <ArrowUpRight className="h-3 w-3 mr-1" />
-                                <span>12%</span>
+                            <div className={`flex items-center text-[10px] mt-1 ${contactGrowth >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                <ArrowUpRight className={`h-3 w-3 mr-1 ${contactGrowth < 0 ? 'rotate-180' : ''}`} />
+                                <span>{contactGrowth >= 0 ? '+' : ''}{contactGrowth.toFixed(1)}%</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -107,9 +187,9 @@ export default function Dashboard() {
                                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Active Deals</p>
                                 <h3 className="text-xl font-bold mt-0.5">{activeDeals}</h3>
                             </div>
-                            <div className="flex items-center text-green-600 text-[10px] mt-1">
-                                <ArrowUpRight className="h-3 w-3 mr-1" />
-                                <span>2.9%</span>
+                            <div className={`flex items-center text-[10px] mt-1 ${dealGrowth >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                <ArrowUpRight className={`h-3 w-3 mr-1 ${dealGrowth < 0 ? 'rotate-180' : ''}`} />
+                                <span>{dealGrowth >= 0 ? '+' : ''}{dealGrowth.toFixed(1)}%</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -123,9 +203,9 @@ export default function Dashboard() {
                                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Pending Tasks</p>
                                 <h3 className="text-xl font-bold mt-0.5">{pendingTasks}</h3>
                             </div>
-                            <div className="flex items-center text-green-600 text-[10px] mt-1">
-                                <ArrowUpRight className="h-3 w-3 mr-1" />
-                                <span>0.9%</span>
+                            <div className={`flex items-center text-[10px] mt-1 ${taskGrowth >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                <ArrowUpRight className={`h-3 w-3 mr-1 ${taskGrowth < 0 ? 'rotate-180' : ''}`} />
+                                <span>{taskGrowth >= 0 ? '+' : ''}{taskGrowth.toFixed(1)}%</span>
                             </div>
                         </CardContent>
                     </Card>

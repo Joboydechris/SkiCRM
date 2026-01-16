@@ -40,4 +40,5 @@ export interface Task {
     title: string
     completed: boolean
     due_date?: string
+    created_at?: string
 }
